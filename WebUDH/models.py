@@ -24,7 +24,7 @@ class Usuario(AbstractUser):
 #---------------HINCHA        
 class Hincha(models.Model):
     Usuario = models.ForeignKey(Usuario,on_delete=models.CASCADE)
-    alias = models.CharField(max_length=40)
+    alias = models.CharField(max_length=40) 
     def __str__(self):
         return self.alias
 #---------------TIPO DE ADMINISTRADOR    
@@ -39,7 +39,7 @@ class Administrador(models.Model):
     tipo_admin=models.ForeignKey(TipoAdministrador,on_delete=models.CASCADE)
 
     def __str__(self):
-        return f"{self.id.nombreCompleto}: {self.tipo_admin.tipo}"
+        return f"{self.id.username}: {self.tipo_admin.tipo}"
 #---------------CATEGORIAS   
 class Categoria(models.Model):
     id = models.AutoField(primary_key=True)
@@ -94,12 +94,21 @@ class Producto(models.Model):
     stock = models.IntegerField()
     imagen_url = models.CharField(max_length=200)
     usuario = models.ManyToManyField(Usuario, through='Reseña') # se agrega para tener mas atributos
-    id_categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
-    id_almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)  # relacion con almacen 1:M
-    id_proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
-    id_promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL,null=True,blank=True)  # relacion con promocion 1:M
+    categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
+    almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)  # relacion con almacen 1:M
+    proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
+    promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL,null=True,blank=True)  # relacion con promocion 1:M
     def __str__(self):
         return self.nombre
+#_--------------KARDEX
+class Kardex(models.Model):
+    id = models.AutoField(primary_key=True)
+    almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    fecha = models.DateField(auto_now_add=True)
+    cantidad = models.IntegerField()
+    stock_actual = models.IntegerField()
+
 #---------------CARRITOS        
 class Carrito(models.Model):
 
@@ -114,7 +123,7 @@ class Carrito(models.Model):
     def total(self):
         return sum(cp.producto.precio * cp.cantidad for cp in self.carrito_producto_set.all())
     def __str__(self):
-        return f"Carrito #{self.id_carrito} de {self.usuario.nombreCompleto}"
+        return f"Carrito #{self.id} de {self.usuario.username}"
 #---------------CARRITOPRODUCTO        
 # relacion de muchos a muchos pero contiene datos adicionales, se usa through
 class Carrito_Producto(models.Model):
@@ -125,7 +134,7 @@ class Carrito_Producto(models.Model):
         unique_together=[['carrito','producto']]
 
     def __str__(self):
-        return f"Carrito ID: {self.carrito.id_carrito}"
+        return f"Carrito ID: {self.carrito}"
 #---------------PEDIDOS   
 class Pedido(models.Model):
     EstadoPedido =[
@@ -137,7 +146,7 @@ class Pedido(models.Model):
     estado = models.CharField(max_length=40,choices=EstadoPedido, default='Activo')
     
     def __str__(self):
-        return f"Pedido #{self.id_pedido}"
+        return f"Pedido #{self.id}"
 
 class Pasarela(models.Model):
     id = models.AutoField(primary_key=True)
@@ -160,7 +169,7 @@ class Pago(models.Model):
     #estado = models.CharField(choices=Estado, default='Validado')
     #monto = models.DecimalField(max_digits=10, decimal_places=2)
     def __str__(self):
-        return f"Pago ID#{self.id_pago}"
+        return f"Pago ID#{self.id}"
     
 class Noticia(models.Model):
     id = models.AutoField(primary_key=True)
@@ -181,7 +190,7 @@ class Comentario(models.Model):
     fechaComentario = models.DateField(auto_now=True)
 
     def __str__(self):
-        return f"Comentario ID#{self.id_comentario} de {self.usuario.nombreCompleto}"
+        return f"Comentario ID#{self.id} de {self.usuario.username}"
 
 class Reseña(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
@@ -193,10 +202,10 @@ class Reseña(models.Model):
         unique_together=[['usuario','producto']]
 
     def __str__(self):
-        return f"Reseña #{self.producto.id_producto} de {self.usuario.nombreCompleto}"
+        return f"Reseña #{self.producto.id} de {self.usuario.username}"
     
 class Jugador(models.Model):
-    id_jugador = models.AutoField(primary_key=True)
+    id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     edad = models.IntegerField()
