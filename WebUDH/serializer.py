@@ -5,20 +5,6 @@ class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = "__all__"
-#Seguridad 
-class MiUsuarioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = MiUsuario
-        fields = '__all__'
-
-    def create(self, validated_data):
-        user = MiUsuario(
-            email = validated_data['email'],
-            username = validated_data['username'],
-        )
-        user.set_password(validated_data['password'])
-        user.save()
-        return user
 #class HinchaSerializer(serializers.ModelSerializer):
 #    class Meta:
 #        model = Hincha

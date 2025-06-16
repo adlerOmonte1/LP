@@ -1,5 +1,4 @@
 from django.db import models
-from django.contrib.auth.models import AbstractUser,BaseUserManager
 
 # Create your models here.
 Estado =[
@@ -71,10 +70,6 @@ class Almacen(models.Model):
 class Promocion(models.Model):
     id_promocion = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=30)
-    descripcion = models.TextField()
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
-    estado = models.CharField(max_length=40,choices=Estado,default='Inhabilitado')
     descuento = models.DecimalField(max_digits=5, decimal_places=2)
 
     def __str__(self):
@@ -88,7 +83,7 @@ class Producto(models.Model):
     talla = models.CharField(max_length=40,null=True)
     stock = models.IntegerField()
     imagen_url = models.CharField(max_length=200)
-    usuario = models.ManyToManyField(Usuario, through='Reseña') # se agrega para tener mas atributos
+    usuario = models.ManyToManyField(Usuario, through='Reseña')
     id_categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
     id_almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)  # relacion con almacen 1:M
     id_proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
@@ -102,14 +97,13 @@ class Carrito(models.Model):
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     producto = models.ManyToManyField(Producto, through='Carrito_Producto')
     fecha_creacion = models.DateField(auto_now=True)
-
     #monto_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     #estado = models.CharField(choices=Estado, default='Activo')
     @property
     def total(self):
         return sum(cp.producto.precio * cp.cantidad for cp in self.carrito_producto_set.all())
-    def __str__(self):
-        return f"Carrito #{self.id_carrito} de {self.usuario.nombreCompleto}"
+    #def __str__(self):
+    #    return f"Carrito #{self.id_carrito} de {self.usuario.nombreCompleto}"
 #---------------CARRITOPRODUCTO        
 # relacion de muchos a muchos pero contiene datos adicionales, se usa through
 class Carrito_Producto(models.Model):
@@ -236,34 +230,3 @@ class Post_Historia(models.Model):
 
     def __str__(self):
         return self.titulo
-    
-    #Prueba Unitaria de Seguridad
-class UsuarioManager(BaseUserManager):
-    def create_user(self,username,email,password=None,**extra_fields):
-        #Creamos un usario en base a nombre de usuario, contraseña y correo
-        if not email: #verifica que se proporcione correo
-            raise ValueError('Correo es obligatorio')
-        email = self.normalize_email(email) #convierte en minusculas 
-        user = self.model(username=username,email=email,**extra_fields)
-        user.set_password(password) #encripta la contraseña
-        user.save(using=self._db)
-        return user
-    
-    def create_superuser(self,username,email,password=None,**extra_fields):
-        #Creamos un superusario en base a nombre de usuario, contraseña y correo
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('El campo staff debe ser True')
-        
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('El campo superusuario debe ser True')
-        
-        return self.create_user(username,email,password,**extra_fields)
-    
-class MiUsuario(AbstractUser): #distinguir con mi otra tabla usuario
-    objects = UsuarioManager()
-
-    def __str__(self):
-        return self.username

@@ -10,7 +10,14 @@ admin.site.register(Proveedor)
 admin.site.register(Almacen)
 admin.site.register(Promocion)
 admin.site.register(Producto)
-admin.site.register(Carrito)
+#admin.site.register(Carrito)
+class CarritoAdmin(admin.ModelAdmin):
+    list_display = ('id_carrito', 'usuario', 'fecha_creacion','total')
+    def total(self, obj):
+        return obj.total
+    total.short_description = 'Total calculado'
+
+admin.site.register(Carrito, CarritoAdmin)
 admin.site.register(Carrito_Producto)
 admin.site.register(Pedido)
 admin.site.register(Pasarela)
