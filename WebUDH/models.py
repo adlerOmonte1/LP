@@ -1,6 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,BaseUserManager
-
+from datetime import datetime #para mi funcion de promocion
 # Create your models here.
 Estado =[
         ('Activo','Activo'),('Inhabilitado','Inhabilitado')
@@ -77,10 +77,19 @@ class Promocion(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=30)
     descripcion = models.TextField()
-    fecha_inicio = models.DateField()
-    fecha_fin = models.DateField()
-    estado = models.CharField(max_length=40,choices=Estado,default='Inhabilitado')
+    fecha_inicio = models.DateTimeField()
+    fecha_fin = models.DateTimeField()
+    #estado = models.CharField(max_length=40,choices=Estado,default='Inhabilitado')
     descuento = models.DecimalField(max_digits=5, decimal_places=2)
+    @property # propidad para que el estado de mi promocion se actualice automaticamente
+    def estado(self):
+        hoy = datetime.today()  # obtener la fecha actual
+        if self.fecha_inicio <= hoy <= self.fecha_fin:
+            return 'Activo'
+            #self.estado = 'Activo'
+        return 'Inhabilitado'
+            #self.estado = 'Inahibilitado'
+    
 
     def __str__(self):
         return self.nombre
@@ -95,9 +104,18 @@ class Producto(models.Model):
     imagen_url = models.CharField(max_length=200)
     usuario = models.ManyToManyField(Usuario, through='Reseña') # se agrega para tener mas atributos
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
-    almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)  # relacion con almacen 1:M
+    almacen = models.ManyToManyField(Almacen, through='Kardex')  # M:M relacion con almacen
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
     promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL,null=True,blank=True)  # relacion con promocion 1:M
+    # Funcion de descuento
+    @property
+    def precio_final(self):
+        if self.promocion and self.promocion.estado == 'Activo': # condicional para ver el estado de mi promocion
+            hoy = datetime.date.today() # obtener la fecha como un objeto
+            if self.promocion.fecha_inicio <= hoy <= self.promocion.fecha_fin: # verifica si la fecha actual esta dentro del rango de la promocion
+                precioTotal = round(self.precio * (1 - self.promocion.descuento / 100),2)
+                return precioTotal
+            return self.precio
     def __str__(self):
         return self.nombre
 #_--------------KARDEX

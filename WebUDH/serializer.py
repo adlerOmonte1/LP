@@ -42,11 +42,15 @@ class AlmacenSerializer(serializers.ModelSerializer):
 class PromocionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Promocion
-        fields = "__all__"
+        fields = ['id', 'nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'descuento', 'estado']
+        def get_estado(self, obj):
+            return obj.estado
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
-        fields = "__all__"
+        fields = ['id', 'nombre', 'descripcion', 'precio', 'talla', 'stock', 'imagen_url', 'categoria', 'proveedor', 'almacen', 'promocion','precio_final']
+    def get_precio_final(self,obj):
+            return obj.precio_final
 class CarritoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Carrito
