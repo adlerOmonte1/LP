@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser,BaseUserManager
 from datetime import datetime #para mi funcion de promocion
+from django.utils import timezone #obtener la fecha actual valida sin generar conflictos con la zona horaria
 # Create your models here.
 Estado =[
         ('Activo','Activo'),('Inhabilitado','Inhabilitado')
@@ -83,13 +84,12 @@ class Promocion(models.Model):
     descuento = models.DecimalField(max_digits=5, decimal_places=2)
     @property # propidad para que el estado de mi promocion se actualice automaticamente
     def estado(self):
-        hoy = datetime.today()  # obtener la fecha actual
+        hoy = timezone.now()  # obtener la fecha actual
         if self.fecha_inicio <= hoy <= self.fecha_fin:
             return 'Activo'
             #self.estado = 'Activo'
         return 'Inhabilitado'
-            #self.estado = 'Inahibilitado'
-    
+            #self.estado = 'Inahibilitado'  
 
     def __str__(self):
         return self.nombre
@@ -111,11 +111,12 @@ class Producto(models.Model):
     @property
     def precio_final(self):
         if self.promocion and self.promocion.estado == 'Activo': # condicional para ver el estado de mi promocion
-            hoy = datetime.date.today() # obtener la fecha como un objeto
+            hoy = timezone.now()  # obtener la fecha actual
+            #hoy = datetime.date.today() # obtener la fecha como un objeto
             if self.promocion.fecha_inicio <= hoy <= self.promocion.fecha_fin: # verifica si la fecha actual esta dentro del rango de la promocion
                 precioTotal = round(self.precio * (1 - self.promocion.descuento / 100),2)
                 return precioTotal
-            return self.precio
+        return self.precio
     def __str__(self):
         return self.nombre
 #_--------------KARDEX
