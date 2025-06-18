@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from . import models, serializer
-from rest_framework import viewsets
+from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 #from rest_framework.authtoken.views import ObtainAuthToken
 #from rest_framework.authtoken.models import Token
@@ -10,6 +10,10 @@ from rest_framework.authtoken.models import Token
 from rest_framework.permissions import AllowAny
 from django.contrib.auth import authenticate
 from django.conf import settings
+
+from rest_framework import status
+from rest_framework.decorators import action
+from rest_framework.response import Response
 
 
 #Seguridad
@@ -79,6 +83,7 @@ class PromocionViewSet(viewsets.ModelViewSet):
 class ProductoViewSet(viewsets.ModelViewSet):
     queryset = models.Producto.objects.all()
     serializer_class = serializer.ProductoSerializer
+    permission_classes=[permissions.AllowAny]
 
 class CarritoViewSet(viewsets.ModelViewSet):
     queryset = models.Carrito.objects.all()
@@ -127,3 +132,33 @@ class HistoriaViewSet(viewsets.ModelViewSet):
 class PostHistoriaViewSet(viewsets.ModelViewSet):
     queryset = models.Post_Historia.objects.all()
     serializer_class = serializer.PostHistoriaSerializer
+
+class StockViewSet(viewsets.ModelViewSet):
+    queryset = models.Stock.objects.all()
+    serializer_class = serializer.StockSerializer 
+class KardexViewSet(viewsets.ModelViewSet):
+    queryset = models.Kardex.objects.all()
+    serializer_class = serializer.KardexSerializer
+class UnidadMedidaViewSet(viewsets.ModelViewSet):
+    queryset = models.UnidadMedida.objects.all()
+    serializer_class = serializer.UnidadMedidaSerializer
+
+"""""
+class PersonaViewSet(viewsets.ModelViewSet):
+    queryset = models.Persona.objects.all()
+    serializer_class = serializer.PersonaSerilizer
+    permission_classes = [permissions.AllowAny]
+"""
+#VISTA PERSONALIZADA Consulta
+# consulta por producto,almacen y talla
+class StockViewSetv2(viewsets.ModelViewSet):
+    queryset = models.Stock.objects.all()
+    serializer_class = serializer.StockSerializer2 
+    @action(detail=False, methods=['get'],url_path='consulta') #Decorador, se usa metodo get, 
+    def consultar_stock(self,request):
+        producto_id = request.query_params.get('producto_id')# pregunta a la api pasando esos parametros
+        almacen_id = request.query_params.get('almacen_id')        
+        unidadMedida_id = request.query_params.get('unidadMedida_id')
+        stock = models.Stock.objects.get(producto_id=producto_id,almacen_id=almacen_id,unidadMedida_id=unidadMedida_id) #solo quiero objeto que sea igual a los parametros que estoy consultando
+        stock_serializer=serializer.StockSerializer2(stock)
+        return Response(stock_serializer.data, status=status.HTTP_200_OK)

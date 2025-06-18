@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from . models import *
-
+from . import models
 #Seguridad 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,13 +48,14 @@ class PromocionSerializer(serializers.ModelSerializer):
 class ProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Producto
-        fields = ['id', 'nombre', 'descripcion', 'precio', 'talla', 'stock', 'imagen_url', 'categoria', 'proveedor', 'almacen', 'promocion','precio_final']
+        fields = ['id', 'nombre', 'descripcion', 'precio', 'imagen_url', 'categoria', 'proveedor', 'almacen', 'promocion','precio_final']
     def get_precio_final(self,obj):
             return obj.precio_final
 class CarritoSerializer(serializers.ModelSerializer):
+    #producto = ProductoSerializer()
     class Meta:
         model = Carrito
-        fields = ['id_carrito', 'usuario', 'fecha_creacion','producto','total']
+        fields = ['id', 'usuario', 'fecha_creacion', 'producto', 'total']
         def get_total(self, obj):
             return obj.total
 class CarritoProductoSerializer(serializers.ModelSerializer):
@@ -102,3 +103,43 @@ class PostHistoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post_Historia
         fields = "__all__"
+class StockSerializer(serializers.ModelSerializer):
+    #producto = ProductoSerializer()
+    #almacen = AlmacenSerializer()
+    class Meta:
+        model = models.Stock
+        fields = "__all__"
+class KardexSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Kardex
+        fields = "__all__"
+class UnidadMedidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadMedida
+        fields = "__all__"
+class StockSerializer2(serializers.ModelSerializer):
+    producto = ProductoSerializer()
+    almacen = AlmacenSerializer()
+    unidadMedida = UnidadMedidaSerializer
+    class Meta:
+        model = models.Stock
+        fields = "__all__"
+
+""""
+class PersonaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Persona
+        fields= "__all__"
+
+class UnidadMedidaSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = UnidadMedida
+        fields= "__all__"
+
+class StockSerializer(serializers.ModelSerializer):
+    producto = ProductoSerializer()
+    almacen = AlmacenSerializer()
+    class Meta:
+        model = models.Stock
+        fields = ['producto','almacen','cantidad']
+"""

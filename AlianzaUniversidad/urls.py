@@ -2,6 +2,9 @@ from django.contrib import admin
 from django.urls import path, include
 from rest_framework import routers
 from WebUDH import views
+#uso de imagenes
+from django.conf.urls.static import static #Referencia a las rutas estaticas.
+from django.conf import settings
 
 router = routers.DefaultRouter()
 router.register('usuarios', views.UsuarioViewSet)
@@ -25,6 +28,13 @@ router.register('historias', views.HistoriaViewSet)
 router.register('post-historias', views.PostHistoriaViewSet)
 router.register('hinchas',views.HinchaViewSet)
 router.register('tiposadmin',views.TipoAdminViewSet)
+router.register('kardex',views.KardexViewSet)
+router.register('stock',views.StockViewSet)
+router.register('tallas',views.UnidadMedidaViewSet)
+router.register('stocks',views.StockViewSetv2, basename='consulta')
+
+# migrar se debe de poner el stock y consultar 
+
 #router.register('miusuarios', views.MiUsuarioViewset)
 
 urlpatterns = [
@@ -33,4 +43,4 @@ urlpatterns = [
     path('api/login/', views.LoginView.as_view(), name='login'),  # <-- aquí el login
 
     #path('api/login/', views.ObtenerToken.as_view(),name='token-auth'),
-]
+] + static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT)

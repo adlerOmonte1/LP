@@ -1,7 +1,7 @@
 
 
 from pathlib import Path
-
+import os
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 AUTH_USER_MODEL = 'WebUDH.Usuario'
-API_KEY = 'Z49FUBWBuBxJHbsBNfeHO0aC6vzAEl8W'
+#API_KEY = 'Z49FUBWBuBxJHbsBNfeHO0aC6vzAEl8W'
 ROOT_URLCONF = 'AlianzaUniversidad.urls'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -45,7 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'WebUDH.middleware.APIKeyMiddleware'
+    #'WebUDH.middleware.APIKeyMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -72,6 +72,7 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+"""
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -80,7 +81,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
-
+"""
 
 TEMPLATES = [
     {
@@ -153,10 +154,14 @@ USE_TZ = True
 TIME_ZONE = 'America/Lima' # para que fncione bien con mi zona horaria
 
 
+
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.2/howto/static-files/
 
 STATIC_URL = 'static/'
+#AGREGAR IMAGEN
+MEDIA_URL ='/media/' #define la url en la que se encuentran las imagenes
+MEDIA_ROOT=os.path.join(BASE_DIR,'media')  # Raiz de la ruta de la base de mi carpeta en un item "media"
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

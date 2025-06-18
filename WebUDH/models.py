@@ -20,8 +20,6 @@ class Usuario(AbstractUser):
     
     def __str__(self):
         return self.username
-
-
 #---------------HINCHA        
 class Hincha(models.Model):
     Usuario = models.ForeignKey(Usuario,on_delete=models.CASCADE)
@@ -99,12 +97,12 @@ class Producto(models.Model):
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    talla = models.CharField(max_length=40,null=True)
-    stock = models.IntegerField()
-    imagen_url = models.CharField(max_length=200)
+    #talla = models.CharField(max_length=40,null=True)
+    #stock = models.IntegerField()
+    imagen_url = models.ImageField(upload_to='imagenes_productos/',null=True,blank=True)
     usuario = models.ManyToManyField(Usuario, through='Reseña') # se agrega para tener mas atributos
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
-    almacen = models.ManyToManyField(Almacen, through='Kardex')  # M:M relacion con almacen
+    almacen = models.ManyToManyField(Almacen, through='Stock')  # M:M relacion con almacen
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
     promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL,null=True,blank=True)  # relacion con promocion 1:M
     # Funcion de descuento
@@ -119,38 +117,56 @@ class Producto(models.Model):
         return self.precio
     def __str__(self):
         return self.nombre
+# UNIDAD DE MEDIDA, para definir tallas
+class UnidadMedida(models.Model):
+    id = models.AutoField(primary_key=True)
+    unidad = models.CharField(max_length=30)
+    def __str__(self):
+        return self.unidad
+#------STOCK de la relacion de M-M ALMACEN-PRODUCTO    
+# control de concurrencia
+class Stock(models.Model):
+    almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE) 
+    unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
+    cantidad = models.BigIntegerField()
+    fecha = models.DateTimeField(auto_now=True)
+    class Meta:
+        unique_together=[['almacen','producto','unidadMedida']] # no permite iguales
+
 #_--------------KARDEX
 class Kardex(models.Model):
     id = models.AutoField(primary_key=True)
     almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    fecha = models.DateField(auto_now_add=True)
-    cantidad = models.IntegerField()
-    stock_actual = models.IntegerField()
+    unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
+    descripcion = models.CharField(max_length=100, null=True,blank=True)
+    fecha = models.DateTimeField(auto_now_add=True)
+    transferencia = models.IntegerField() # entrada o salida
+    stock_actual = models.IntegerField() # operacion
 
 #---------------CARRITOS        
 class Carrito(models.Model):
-
     id = models.AutoField(primary_key=True)
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
     producto = models.ManyToManyField(Producto, through='Carrito_Producto')
     fecha_creacion = models.DateField(auto_now=True)
-
     #monto_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     #estado = models.CharField(choices=Estado, default='Activo')
     @property
     def total(self):
-        return sum(cp.producto.precio * cp.cantidad for cp in self.carrito_producto_set.all())
+        return sum(cp.producto.precio_final * cp.cantidad for cp in self.carrito_producto_set.all())
     def __str__(self):
         return f"Carrito #{self.id} de {self.usuario.username}"
-#---------------CARRITOPRODUCTO        
+#---------------CARRITO-PRODUCTO        
 # relacion de muchos a muchos pero contiene datos adicionales, se usa through
 class Carrito_Producto(models.Model):
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
     cantidad = models.IntegerField()
     class Meta:
-        unique_together=[['carrito','producto']]
+        unique_together=[['carrito','producto','unidadMedida']]
 
     def __str__(self):
         return f"Carrito ID: {self.carrito}"
@@ -196,7 +212,7 @@ class Noticia(models.Model):
     titulo = models.CharField(max_length=100)
     contenido = models.TextField()
     fecha_publicacion = models.DateField()
-    imagen_url = models.CharField(max_length=200)
+    imagen_url = models.ImageField(upload_to='imagenes_noticias/',null=True,blank=True)
 
     def __str__(self):
         return self.titulo
@@ -264,12 +280,24 @@ class Post_Historia(models.Model):
     historia = models.ForeignKey(Historia, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=100)
     contexto = models.TextField()
-    url = models.CharField(max_length=200)
+    imagen_url = models.ImageField(upload_to='imagenes_posthistoria/',null=True,blank=True)
     fecha_publicacion = models.DateField()
 
     def __str__(self):
         return self.titulo
     
+    """""
+# Integracion de clase imagen
+
+class Stock (models.Model):
+    persona = models.ForeignKey(Persona,on_delete=models.CASCADE,null=True,blank=True)
+    almacen= models.ForeignKey(Persona,on_delete=models.CASCADE,null=True,blank=True)
+    cantidad = models.PositiveBigIntegerField(default=0)
+    class Meta:
+        unique_together = ('persona','almacen')
+
+# STOCK 
+"""
 """""
 CODIGO POR CONFIRMAR DE PARTE LA AUTENTICACION
     #Prueba Unitaria de Seguridad
