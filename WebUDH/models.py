@@ -140,11 +140,18 @@ class Kardex(models.Model):
     almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
-    descripcion = models.CharField(max_length=100, null=True,blank=True)
+    tipo = models.CharField(max_length=10, choices=[('entrada', 'Entrada'), ('salida', 'Salida')])
     fecha = models.DateTimeField(auto_now_add=True)
-    transferencia = models.IntegerField() # entrada o salida
-    stock_actual = models.IntegerField() # operacion
-
+    cantidad = models.IntegerField() # entrada o salida
+    #Metodo para actualizar el stock por el kardex
+    def save(self, *args,**kwargs):
+        super().save(*args,**kwargs)
+        stock_obj, creado = Stock.objects.get_or_create(producto=self.producto,almacen = self.almacen,unidadMedida=self.unidadMedida)
+        if self.tipo == 'Entrada':
+            stock_obj.cantidad += self.cantidad
+        else:
+            stock_obj.cantidad-= self.cantidad
+        stock_obj.save()
 #---------------CARRITOS        
 class Carrito(models.Model):
     id = models.AutoField(primary_key=True)
@@ -176,12 +183,21 @@ class Pedido(models.Model):
         ('Activo','Activo'),('En proceso','En proceso'),('Finalizado','Finalizado')
     ]
     id = models.AutoField(primary_key=True)
-    carrito = models.OneToOneField(Carrito,on_delete=models.CASCADE)
+    carrito = models.OneToOneField(Carrito,on_delete=models.CASCADE) # modificar en caso el pedido se cumple y luego se borre contenido de pedido
     fecha_pedido = models.DateField(auto_now=True)
     estado = models.CharField(max_length=40,choices=EstadoPedido, default='Activo')
-    
     def __str__(self):
         return f"Pedido #{self.id}"
+    
+class DetallePedido(models.Model):
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
+    unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
+    cantidad = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.producto.nombre} x{self.cantidad}"
+    
 
 class Pasarela(models.Model):
     id = models.AutoField(primary_key=True)
