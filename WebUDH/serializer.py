@@ -117,6 +117,12 @@ class UnidadMedidaSerializer(serializers.ModelSerializer):
     class Meta:
         model = UnidadMedida
         fields = "__all__"
+class DetallePedidoSerializer(serializers.ModelSerializer):
+    producto = ProductoSerializer()
+    class Meta:
+        model = DetallePedido
+        fields = "__all__"
+
 class StockSerializer2(serializers.ModelSerializer):
     producto = ProductoSerializer()
     almacen = AlmacenSerializer()

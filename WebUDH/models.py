@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import AbstractUser,BaseUserManager
 from datetime import datetime #para mi funcion de promocion
 from django.utils import timezone #obtener la fecha actual valida sin generar conflictos con la zona horaria
+from django.db import transaction
 # Create your models here.
 Estado =[
         ('Activo','Activo'),('Inhabilitado','Inhabilitado')
@@ -17,9 +18,9 @@ class Usuario(AbstractUser):
     dni=models.CharField(max_length=8,null=True,blank=True)
     fechaNac=models.DateField(null=True,blank=True)
      #pass cuando no se necesita agregar mas campos
-    
     def __str__(self):
         return self.username
+
 #---------------HINCHA        
 class Hincha(models.Model):
     Usuario = models.ForeignKey(Usuario,on_delete=models.CASCADE)
@@ -129,7 +130,7 @@ class Stock(models.Model):
     almacen = models.ForeignKey(Almacen, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE) 
     unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
-    cantidad = models.BigIntegerField()
+    cantidad = models.BigIntegerField(default=0)  # cantidad de stock
     fecha = models.DateTimeField(auto_now=True)
     class Meta:
         unique_together=[['almacen','producto','unidadMedida']] # no permite iguales
@@ -143,14 +144,20 @@ class Kardex(models.Model):
     tipo = models.CharField(max_length=10, choices=[('entrada', 'Entrada'), ('salida', 'Salida')])
     fecha = models.DateTimeField(auto_now_add=True)
     cantidad = models.IntegerField() # entrada o salida
+    # CONTROL DE CONCURRENCIA
     #Metodo para actualizar el stock por el kardex
+
     def save(self, *args,**kwargs):
         super().save(*args,**kwargs)
         stock_obj, creado = Stock.objects.get_or_create(producto=self.producto,almacen = self.almacen,unidadMedida=self.unidadMedida)
-        if self.tipo == 'Entrada':
+        #super().save(*args, **kwargs) 
+        # condicional para la entrada y salida del stock
+        if self.tipo == 'entrada':
             stock_obj.cantidad += self.cantidad
-        else:
-            stock_obj.cantidad-= self.cantidad
+        elif self.tipo == 'salida':
+            if stock_obj.cantidad < self.cantidad:
+                raise ValueError("No hay suficiente stock para realizar la salida.")
+            stock_obj.cantidad -= self.cantidad
         stock_obj.save()
 #---------------CARRITOS        
 class Carrito(models.Model):
@@ -178,27 +185,22 @@ class Carrito_Producto(models.Model):
     def __str__(self):
         return f"Carrito ID: {self.carrito}"
 #---------------PEDIDOS   
+# aca se guardan todos los datos de una compra, una vez pagado desde el carrito
 class Pedido(models.Model):
-    EstadoPedido =[
-        ('Activo','Activo'),('En proceso','En proceso'),('Finalizado','Finalizado')
-    ]
     id = models.AutoField(primary_key=True)
-    carrito = models.OneToOneField(Carrito,on_delete=models.CASCADE) # modificar en caso el pedido se cumple y luego se borre contenido de pedido
-    fecha_pedido = models.DateField(auto_now=True)
-    estado = models.CharField(max_length=40,choices=EstadoPedido, default='Activo')
+    carrito = models.ForeignKey(Carrito,on_delete=models.CASCADE) # modificar en caso el pedido se cumple y luego se borre contenido de pedido
+    fecha_pedido = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Pedido #{self.id}"
     
 class DetallePedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
+    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
+    unidadMedida = models.ForeignKey(UnidadMedida, on_delete=models.CASCADE)
     cantidad = models.IntegerField()
-
-    def __str__(self):
-        return f"{self.producto.nombre} x{self.cantidad}"
-    
-
+    class Meta:
+        unique_together=[['carrito','producto','unidadMedida']]
 class Pasarela(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
@@ -210,15 +212,10 @@ class Pasarela(models.Model):
         return self.nombre
 
 class Pago(models.Model):
-   # EstadoPago =[
-    #    ('Validado'),('En Proceso')
-     #]
     id = models.AutoField(primary_key=True)
-    fecha_pago = models.DateField(auto_now=True)
-    pedido = models.OneToOneField(Pedido, on_delete=models.CASCADE)
-    pasarela = models.ForeignKey(Pasarela, on_delete=models.CASCADE)
-    #estado = models.CharField(choices=Estado, default='Validado')
-    #monto = models.DecimalField(max_digits=10, decimal_places=2)
+    fecha_pago = models.DateTimeField(auto_now=True)
+    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
+    #pasarela = models.ForeignKey(Pasarela, on_delete=models.CASCADE)
     def __str__(self):
         return f"Pago ID#{self.id}"
     

@@ -15,6 +15,8 @@ from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
+from django.db import transaction
+from .models import Carrito,Pago,Pedido,Kardex,DetallePedido
 
 #Seguridad
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -142,6 +144,9 @@ class KardexViewSet(viewsets.ModelViewSet):
 class UnidadMedidaViewSet(viewsets.ModelViewSet):
     queryset = models.UnidadMedida.objects.all()
     serializer_class = serializer.UnidadMedidaSerializer
+class DetallePedidoViewSet(viewsets.ModelViewSet):
+    queryset = models.DetallePedido.objects.all()
+    serializer_class = serializer.DetallePedidoSerializer
 
 """""
 class PersonaViewSet(viewsets.ModelViewSet):
@@ -162,3 +167,56 @@ class StockViewSetv2(viewsets.ModelViewSet):
         stock = models.Stock.objects.get(producto_id=producto_id,almacen_id=almacen_id,unidadMedida_id=unidadMedida_id) #solo quiero objeto que sea igual a los parametros que estoy consultando
         stock_serializer=serializer.StockSerializer2(stock)
         return Response(stock_serializer.data, status=status.HTTP_200_OK)
+
+class ProcesarPago(viewsets.ViewSet):
+    @action(detail=False, methods=['post'], url_path='procesar')
+    @transaction.atomic
+    def procesar_pago(self, request):
+        carrito_id = request.data.get('carrito_id')
+        carrito = Carrito.objects.get(id=carrito_id)
+
+            # Validar stock antes de procesar
+        for item in carrito.carrito_producto_set.all():
+                total_stock = 0
+                for stock in item.producto.stock_set.filter(unidadMedida=item.unidadMedida):
+                    total_stock += stock.cantidad
+                if item.cantidad > total_stock:
+                    return Response({
+                        'error': f"No hay suficiente stock para el producto {item.producto.nombre}."
+                    }, status=status.HTTP_400_BAD_REQUEST)
+
+            # Crear el pago
+        Pago.objects.create(carrito=carrito)
+
+            # Crear el pedido
+        pedido = Pedido.objects.create(carrito=carrito)
+
+            # Generar detalle del pedido y actualizar kardex
+        for item in carrito.carrito_producto_set.all():
+                DetallePedido.objects.create(
+                    pedido=pedido,
+                    carrito=carrito,
+                    producto=item.producto,
+                    unidadMedida=item.unidadMedida,
+                    cantidad=item.cantidad
+                )
+                cantidad_restante = item.cantidad
+
+                # Distribuir la salida del stock por orden de fecha
+                stocks = item.producto.stock_set.filter(unidadMedida=item.unidadMedida).order_by('fecha')
+                for stock in stocks:
+                    if cantidad_restante <= 0:
+                        break
+                    salida = min(cantidad_restante, stock.cantidad)
+                    Kardex.objects.create(
+                        producto=item.producto,
+                        almacen=stock.almacen,
+                        unidadMedida=item.unidadMedida,
+                        tipo='salida',
+                        cantidad=salida
+                    )
+                    cantidad_restante -= salida
+
+            # Vaciar el carrito
+        carrito.carrito_producto_set.all().delete()
+        return Response({'mensaje': 'Pago procesado correctamente'}, status=status.HTTP_200_OK)
