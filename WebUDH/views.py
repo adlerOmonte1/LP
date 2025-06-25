@@ -185,10 +185,10 @@ class ProcesarPago(viewsets.ViewSet):
                         'error': f"No hay suficiente stock para el producto {item.producto.nombre}."
                     }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Crear el pago
+            # Crear el pago con el carrito
         Pago.objects.create(carrito=carrito)
 
-            # Crear el pedido
+            # Crear el pedido despues del pago
         pedido = Pedido.objects.create(carrito=carrito)
 
             # Generar detalle del pedido y actualizar kardex

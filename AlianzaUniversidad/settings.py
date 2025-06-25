@@ -34,7 +34,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 ]
 AUTH_USER_MODEL = 'WebUDH.Usuario'
-#API_KEY = 'Z49FUBWBuBxJHbsBNfeHO0aC6vzAEl8W'
+API_KEY = 'Z49FUBWBuBxJHbsBNfeHO0aC6vzAEl8W'
 ROOT_URLCONF = 'AlianzaUniversidad.urls'
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
@@ -72,7 +72,7 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-"""
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -81,7 +81,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
-"""
+
 
 TEMPLATES = [
     {

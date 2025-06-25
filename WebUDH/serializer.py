@@ -75,6 +75,7 @@ class PagoSerializer(serializers.ModelSerializer):
         model = Pago
         fields = "__all__"
 class NoticiaSerializer(serializers.ModelSerializer):
+    admin_nombre = serializers.ReadOnlyField(source='administrador.') # nombre campo con el otro campo de que yo quiero
     class Meta:
         model = Noticia
         fields = "__all__"
