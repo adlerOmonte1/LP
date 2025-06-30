@@ -36,7 +36,10 @@ class LoginView(APIView):
         user = authenticate(username=username, password=password)
         if user is not None:
             token, _ = Token.objects.get_or_create(user=user)
-            return Response({"token": token.key})
+            
+            user_data = serializer.UsuarioSerializer(user).data # obtener los datos del usuario para obtener el rol
+            return Response({"token": token.key,"usuario":user_data
+                             }) # agregar los datos del usuario para ver el rol
         else:
             return Response({"error": "Credenciales Invalidas"}, status=400)
 

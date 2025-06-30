@@ -9,6 +9,10 @@ Estado =[
 ]
 #---------------USUARIO
 class Usuario(AbstractUser):
+    rol = [
+        ('administrador','Administrador'),
+        ('hincha','Hincha'),
+    ]
     #Ya tiene por el Modelo Abstrac User
     #id=models.AutoField(primary_key=True)
     #nombreCompleto=models.CharField(max_length=70)
@@ -17,6 +21,7 @@ class Usuario(AbstractUser):
     telefono=models.CharField(max_length=9,null=True,blank=True)
     dni=models.CharField(max_length=8,null=True,blank=True)
     fechaNac=models.DateField(null=True,blank=True)
+    rol = models.CharField(max_length=30, choices=rol, default='hincha') # rol del usuario, hincha o administrador
      #pass cuando no se necesita agregar mas campos
     def __str__(self):
         return self.username
