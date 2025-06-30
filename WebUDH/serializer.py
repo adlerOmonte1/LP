@@ -24,9 +24,13 @@ class TipoAdminSerializer(serializers.ModelSerializer):
         model = TipoAdministrador
         fields = "__all__"
 class AdministradorSerializer(serializers.ModelSerializer):
+    nombre_usuario = serializers.CharField(source='id.username', read_only=True)  # 'id' es el campo OneToOne a Usuario
+
     class Meta:
         model = Administrador
-        fields = "__all__"
+        fields = ['id', 'tipo_admin', 'nombre_usuario']
+
+
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
@@ -86,10 +90,13 @@ class PagoSerializer(serializers.ModelSerializer):
         model = Pago
         fields = "__all__"
 class NoticiaSerializer(serializers.ModelSerializer):
-    admin_nombre = serializers.ReadOnlyField(source='administrador.') # nombre campo con el otro campo de que yo quiero
+    administrador = AdministradorSerializer(read_only=True)
+    administrador_id = serializers.PrimaryKeyRelatedField(queryset=Administrador.objects.all(), source='administrador', write_only=True)
+
     class Meta:
         model = Noticia
-        fields = "__all__"
+        fields = ['id', 'administrador', 'administrador_id', 'titulo', 'contenido', 'fecha_publicacion', 'imagen_url']
+
 class ComentarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
@@ -104,9 +111,14 @@ class JugadorSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
 class PartidoSerializer(serializers.ModelSerializer):
+    administrador = AdministradorSerializer(read_only=True)  # mostrar info completa
+    administrador_id = serializers.PrimaryKeyRelatedField(queryset=Administrador.objects.all(), source='administrador', write_only=True)
+
     class Meta:
         model = Partido
-        fields = "__all__"
+        fields = ['id', 'administrador', 'administrador_id', 'nombre_partido', 'lugar_partido', 'fecha_partido', 'hora_partido', 'resultado']
+
+
 class HistoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Historia
