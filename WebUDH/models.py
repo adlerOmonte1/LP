@@ -106,9 +106,9 @@ class Producto(models.Model):
     #talla = models.CharField(max_length=40,null=True)
     #stock = models.IntegerField()
     imagen_url = models.ImageField(upload_to='imagenes_productos/',null=True,blank=True)
-    usuario = models.ManyToManyField(Usuario, through='Reseña') # se agrega para tener mas atributos
+    usuario = models.ManyToManyField(Usuario, through='Reseña',null=True) # se agrega para tener mas atributos
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
-    almacen = models.ManyToManyField(Almacen, through='Stock')  # M:M relacion con almacen
+    almacen = models.ManyToManyField(Almacen, through='Stock',null=True)  # M:M relacion con almacen
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
     promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL,null=True,blank=True)  # relacion con promocion 1:M
     # Funcion de descuento

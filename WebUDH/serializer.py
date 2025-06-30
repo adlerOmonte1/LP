@@ -46,9 +46,17 @@ class PromocionSerializer(serializers.ModelSerializer):
         def get_estado(self, obj):
             return obj.estado
 class ProductoSerializer(serializers.ModelSerializer):
+    nombre_categoria = serializers.ReadOnlyField(source='categoria.nombre')
+    nombre_proveedor = serializers.ReadOnlyField(source='proveedor.nombreProveedor')
+    nombre_almacen = serializers.ReadOnlyField(source='almacen.nombre')
+    nombre_promocion = serializers.ReadOnlyField(source='promocion.nombre')
     class Meta:
         model = Producto
-        fields = ['id', 'nombre', 'descripcion', 'precio', 'imagen_url', 'categoria', 'proveedor', 'almacen', 'promocion','precio_final']
+        #fields = '__all__'
+        fields = ['id', 'nombre', 'descripcion', 'precio', 'imagen_url',
+                  'categoria', 'proveedor', 'almacen', 'promocion',
+                  'nombre_categoria', 'nombre_proveedor', 'nombre_almacen',
+                  'nombre_promocion', 'precio_final']
     def get_precio_final(self,obj):
             return obj.precio_final
 class CarritoSerializer(serializers.ModelSerializer):
@@ -59,6 +67,9 @@ class CarritoSerializer(serializers.ModelSerializer):
         def get_total(self, obj):
             return obj.total
 class CarritoProductoSerializer(serializers.ModelSerializer):
+    producto_imagen = serializers.ImageField(source='producto.imagen_url', read_only=True)
+    producto_precio = serializers.ReadOnlyField(source='producto.precio')
+    producto_nombre = serializers.ReadOnlyField(source='producto.nombre')
     class Meta:
         model = Carrito_Producto
         fields = "__all__"
