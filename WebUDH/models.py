@@ -24,7 +24,7 @@ class Usuario(AbstractUser):
     rol = models.CharField(max_length=30, choices=rol, default='hincha') # rol del usuario, hincha o administrador
      #pass cuando no se necesita agregar mas campos
     def __str__(self):
-        return self.username
+        return self.username    
 
 #---------------HINCHA        
 class Hincha(models.Model):
@@ -258,20 +258,17 @@ class Reseña(models.Model):
         return f"Reseña #{self.producto.id} de {self.usuario.username}"
     
 class Jugador(models.Model):
-    id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     apellido = models.CharField(max_length=100)
     edad = models.IntegerField()
     posicion = models.CharField(max_length=50)
     dorsal = models.IntegerField()
-    peso = models.DecimalField(max_digits=5, decimal_places=2)
-    altura = models.DecimalField(max_digits=5, decimal_places=2)
-    nacionalidad = models.CharField(max_length=25)
+    peso = models.FloatField()
+    altura = models.FloatField()
+    nacionalidad = models.CharField(max_length=100)
+    imagen = models.ImageField(upload_to='jugadores/', blank=True, null=True)
     administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
-
-    def __str__(self):
-        return self.nombre
-    
+ 
 class Partido(models.Model):
     id = models.AutoField(primary_key=True)
     administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)  

@@ -1,11 +1,14 @@
 from rest_framework import serializers
 from . models import *
 from . import models
+from . models import Administrador, Jugador
+
+
 #Seguridad 
 class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
-        fields = '__all__'
+        fields = "__all__"
 
     def create(self, validated_data):
         user = Usuario(
@@ -18,15 +21,20 @@ class UsuarioSerializer(serializers.ModelSerializer):
 class HinchaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Hincha
-        fields = "__all__"
+        fields = ['usuario','alias']
 class TipoAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoAdministrador
-        fields = "__all__"
-class AdministradorSerializer(serializers.ModelSerializer):
+        fields = ['id', 'tipo']
+
+        
+class AdministradorSerializer(serializers.ModelSerializer):  
+    username = serializers.CharField(source='id.username', read_only=True)
+    tipo_nombre = serializers.CharField(source='tipo_admin.tipo', read_only=True)
+
     class Meta:
         model = Administrador
-        fields = "__all__"
+        fields = ['id', 'tipo_admin', 'username', 'tipo_nombre']
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
@@ -98,11 +106,15 @@ class ReseñaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Reseña
         fields = "__all__"
-class JugadorSerializer(serializers.ModelSerializer):
+class JugadorSerializer(serializers.ModelSerializer): 
+    tipo_param = serializers.CharField(source='administrador.id', read_only=True)
     class Meta:
         model = Jugador
-        fields = "__all__"
-
+        fields = [
+            'id', 'nombre', 'apellido', 'edad', 'posicion',
+            'dorsal', 'peso', 'altura', 'nacionalidad',
+            'imagen', 'administrador','tipo_param'
+        ]
 class PartidoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Partido
