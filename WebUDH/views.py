@@ -16,7 +16,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 
 from django.db import transaction
-from .models import Carrito,Pago,Pedido,Kardex,DetallePedido
+from .models import Administrador, Carrito,Pago,Pedido,Kardex,DetallePedido
+
 
 #Seguridad
 class UsuarioViewSet(viewsets.ModelViewSet):
@@ -66,9 +67,8 @@ class TipoAdminViewSet(viewsets.ModelViewSet):
     serializer_class = serializer.TipoAdminSerializer
 
 class AdministradorViewSet(viewsets.ModelViewSet):
-    queryset = models.Administrador.objects.all()
+    queryset = Administrador.objects.all()
     serializer_class = serializer.AdministradorSerializer
-
 class CategoriaViewSet(viewsets.ModelViewSet):
     queryset = models.Categoria.objects.all()
     serializer_class = serializer.CategoriaSerializer
@@ -125,6 +125,7 @@ class ReseñaViewSet(viewsets.ModelViewSet):
 class JugadorViewSet(viewsets.ModelViewSet):
     queryset = models.Jugador.objects.all()
     serializer_class = serializer.JugadorSerializer
+        
 
 class PartidoViewSet(viewsets.ModelViewSet):
     queryset = models.Partido.objects.all()
