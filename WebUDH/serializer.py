@@ -116,6 +116,9 @@ class PostHistoriaSerializer(serializers.ModelSerializer):
         model = Post_Historia
         fields = "__all__"
 class StockSerializer(serializers.ModelSerializer):
+    nombre_producto = serializers.ReadOnlyField(source='producto.nombre')
+    nombre_almacen = serializers.ReadOnlyField(source='almacen.nombre')
+    nombre_talla = serializers.ReadOnlyField(source = 'unidadMedida.unidad')
     #producto = ProductoSerializer()
     #almacen = AlmacenSerializer()
     class Meta:
