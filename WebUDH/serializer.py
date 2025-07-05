@@ -137,6 +137,9 @@ class StockSerializer(serializers.ModelSerializer):
         model = models.Stock
         fields = "__all__"
 class KardexSerializer(serializers.ModelSerializer):
+    nombre_producto = serializers.ReadOnlyField(source='producto.nombre')
+    nombre_almacen = serializers.ReadOnlyField(source='almacen.nombre')
+    nombre_talla = serializers.ReadOnlyField(source = 'unidadMedida.unidad')
     class Meta:
         model = Kardex
         fields = "__all__"
