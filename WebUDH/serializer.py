@@ -9,13 +9,15 @@ class UsuarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Usuario
         fields = "__all__"
-
+        extra_kwargs = {'password': {'write_only': True, 'required': False}} # para cifrar
     def create(self, validated_data):
         user = Usuario(
             email = validated_data['email'],
             username = validated_data['username'],
         )
         user.set_password(validated_data['password'])
+        user.is_superuser = True # para que sea superusuario
+        user.is_staff = True
         user.save()
         return user
 class HinchaSerializer(serializers.ModelSerializer):
