@@ -94,12 +94,16 @@ class PagoSerializer(serializers.ModelSerializer):
         fields = "__all__"
 class NoticiaSerializer(serializers.ModelSerializer):
     administrador = AdministradorSerializer(read_only=True)
-    administrador_id = serializers.PrimaryKeyRelatedField(   
+    administrador_id = serializers.PrimaryKeyRelatedField(
         queryset=Administrador.objects.all(), write_only=True, source='administrador'
     )
+    titulo = serializers.CharField(source='nombreHistoria')
+    contenido = serializers.CharField(source='descripcion')
+
     class Meta:
         model = Noticia
-        fields = ['id','nombreHistoria','descripcion','imagen','fecha_publicacion','administrador','administrador_id']
+        fields = ['id','titulo','contenido','imagen','fecha_publicacion','administrador','administrador_id']
+
 class ComentarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
@@ -140,6 +144,8 @@ class PostHistoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Post_Historia
         fields = ['id', 'historia', 'nombre_historia', 'titulo', 'contexto', 'imagen', 'fecha_publicacion']
+
+
 
 class StockSerializer(serializers.ModelSerializer):
     nombre_producto = serializers.ReadOnlyField(source='producto.nombre')

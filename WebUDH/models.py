@@ -285,7 +285,7 @@ class Historia(models.Model):
     id = models.AutoField(primary_key=True)
     nombreHistoria = models.CharField(max_length=100)
     descripcion = models.TextField()
-    imagen = models.ImageField(upload_to='historias/', null=True, blank=True) 
+    imagen = models.ImageField(upload_to='historias/', null=True, blank=True)
     administrador = models.ForeignKey('Administrador', on_delete=models.CASCADE)
 
     def __str__(self):
