@@ -271,7 +271,7 @@ class Jugador(models.Model):
  
 class Partido(models.Model):
     id = models.AutoField(primary_key=True)
-    administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)  
+    administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE,blank=True, null=True)  
     nombre_partido = models.CharField(max_length=100) 
     lugar_partido = models.CharField(max_length=50)     
     fecha_partido = models.DateField()
