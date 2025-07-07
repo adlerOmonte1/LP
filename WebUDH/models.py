@@ -226,14 +226,14 @@ class Pago(models.Model):
     
 class Noticia(models.Model):
     id = models.AutoField(primary_key=True)
-    administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
-    titulo = models.CharField(max_length=100)
-    contenido = models.TextField()
-    fecha_publicacion = models.DateField()
-    imagen_url = models.ImageField(upload_to='imagenes_noticias/',null=True,blank=True)
+    nombreHistoria = models.CharField(max_length=100)  
+    descripcion = models.TextField()                  
+    imagen = models.ImageField(upload_to='noticias/', null=True, blank=True)  
+    fecha_publicacion = models.DateField(auto_now_add=True)
+    administrador = models.ForeignKey('Administrador', on_delete=models.CASCADE)
 
     def __str__(self):
-        return self.titulo
+        return self.nombreHistoria
     
 class Comentario(models.Model):
     id = models.AutoField(primary_key=True)
@@ -285,7 +285,8 @@ class Historia(models.Model):
     id = models.AutoField(primary_key=True)
     nombreHistoria = models.CharField(max_length=100)
     descripcion = models.TextField()
-    administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
+    imagen = models.ImageField(upload_to='historias/', null=True, blank=True) 
+    administrador = models.ForeignKey('Administrador', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.nombreHistoria
@@ -295,11 +296,12 @@ class Post_Historia(models.Model):
     historia = models.ForeignKey(Historia, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=100)
     contexto = models.TextField()
-    imagen_url = models.ImageField(upload_to='imagenes_posthistoria/',null=True,blank=True)
-    fecha_publicacion = models.DateField()
+    imagen = models.ImageField(upload_to='imagenes_posthistoria/', null=True, blank=True) 
+    fecha_publicacion = models.DateField(auto_now_add=True)  
 
     def __str__(self):
         return self.titulo
+
     
     """""
 # Integracion de clase imagen

@@ -28,15 +28,12 @@ class TipoAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = TipoAdministrador
         fields = ['id', 'tipo']
-
-        
-class AdministradorSerializer(serializers.ModelSerializer):  
-    username = serializers.CharField(source='id.username', read_only=True)
-    tipo_nombre = serializers.CharField(source='tipo_admin.tipo', read_only=True)
-
+        fields = "__all__"
+class AdministradorSerializer(serializers.ModelSerializer):
+    nombre_usuario = serializers.CharField(source='id.username', read_only=True)  # 'id' es el campo OneToOne a Usuario
     class Meta:
         model = Administrador
-        fields = ['id', 'tipo_admin', 'username', 'tipo_nombre']
+        fields = ['id', 'tipo_admin', 'nombre_usuario']
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
@@ -96,10 +93,13 @@ class PagoSerializer(serializers.ModelSerializer):
         model = Pago
         fields = "__all__"
 class NoticiaSerializer(serializers.ModelSerializer):
-    admin_nombre = serializers.ReadOnlyField(source='administrador.') # nombre campo con el otro campo de que yo quiero
+    administrador = AdministradorSerializer(read_only=True)
+    administrador_id = serializers.PrimaryKeyRelatedField(   
+        queryset=Administrador.objects.all(), write_only=True, source='administrador'
+    )
     class Meta:
         model = Noticia
-        fields = "__all__"
+        fields = ['id','nombreHistoria','descripcion','imagen','fecha_publicacion','administrador','administrador_id']
 class ComentarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
@@ -118,17 +118,29 @@ class JugadorSerializer(serializers.ModelSerializer):
             'imagen', 'administrador','tipo_param'
         ]
 class PartidoSerializer(serializers.ModelSerializer):
+    administrador = AdministradorSerializer(read_only=True)  # mostrar info completa
+    administrador_id = serializers.PrimaryKeyRelatedField(queryset=Administrador.objects.all(), source='administrador', write_only=True)
+
     class Meta:
         model = Partido
-        fields = "__all__"
+        fields = ['id', 'administrador', 'administrador_id', 'nombre_partido', 'lugar_partido', 'fecha_partido', 'hora_partido', 'resultado']
+
 class HistoriaSerializer(serializers.ModelSerializer):
+    administrador = AdministradorSerializer(read_only=True) 
+    administrador_id = serializers.PrimaryKeyRelatedField(   
+        queryset=Administrador.objects.all(), write_only=True, source='administrador'
+    )
     class Meta:
         model = Historia
-        fields = "__all__"
+        fields = ['id','nombreHistoria','descripcion','imagen','administrador','administrador_id']
+
 class PostHistoriaSerializer(serializers.ModelSerializer):
+    nombre_historia = serializers.ReadOnlyField(source='historia.nombreHistoria')
+
     class Meta:
         model = Post_Historia
-        fields = "__all__"
+        fields = ['id', 'historia', 'nombre_historia', 'titulo', 'contexto', 'imagen', 'fecha_publicacion']
+
 class StockSerializer(serializers.ModelSerializer):
     nombre_producto = serializers.ReadOnlyField(source='producto.nombre')
     nombre_almacen = serializers.ReadOnlyField(source='almacen.nombre')
