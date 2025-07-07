@@ -91,12 +91,12 @@ class PagoSerializer(serializers.ModelSerializer):
         fields = "__all__"
 class NoticiaSerializer(serializers.ModelSerializer):
     administrador = AdministradorSerializer(read_only=True)
-    administrador_id = serializers.PrimaryKeyRelatedField(queryset=Administrador.objects.all(), source='administrador', write_only=True)
-
+    administrador_id = serializers.PrimaryKeyRelatedField(   
+        queryset=Administrador.objects.all(), write_only=True, source='administrador'
+    )
     class Meta:
         model = Noticia
-        fields = ['id', 'administrador', 'administrador_id', 'titulo', 'contenido', 'fecha_publicacion', 'imagen_url']
-
+        fields = ['id','nombreHistoria','descripcion','imagen','fecha_publicacion','administrador','administrador_id']
 class ComentarioSerializer(serializers.ModelSerializer):
     class Meta:
         model = Comentario
@@ -118,15 +118,22 @@ class PartidoSerializer(serializers.ModelSerializer):
         model = Partido
         fields = ['id', 'administrador', 'administrador_id', 'nombre_partido', 'lugar_partido', 'fecha_partido', 'hora_partido', 'resultado']
 
-
 class HistoriaSerializer(serializers.ModelSerializer):
+    administrador = AdministradorSerializer(read_only=True) 
+    administrador_id = serializers.PrimaryKeyRelatedField(   
+        queryset=Administrador.objects.all(), write_only=True, source='administrador'
+    )
     class Meta:
         model = Historia
-        fields = "__all__"
+        fields = ['id','nombreHistoria','descripcion','imagen','administrador','administrador_id']
+
 class PostHistoriaSerializer(serializers.ModelSerializer):
+    nombre_historia = serializers.ReadOnlyField(source='historia.nombreHistoria')
+
     class Meta:
         model = Post_Historia
-        fields = "__all__"
+        fields = ['id', 'historia', 'nombre_historia', 'titulo', 'contexto', 'imagen', 'fecha_publicacion']
+
 class StockSerializer(serializers.ModelSerializer):
     #producto = ProductoSerializer()
     #almacen = AlmacenSerializer()
