@@ -165,18 +165,23 @@ class Kardex(models.Model):
     # CONTROL DE CONCURRENCIA
     #Metodo para actualizar el stock por el kardex
 
-    def save(self, *args,**kwargs):
-        super().save(*args,**kwargs)
-        stock_obj, creado = Stock.objects.get_or_create(producto=self.producto,almacen = self.almacen,unidadMedida=self.unidadMedida)
-        #super().save(*args, **kwargs) 
-        # condicional para la entrada y salida del stock
+    def save(self, *args, **kwargs):
+        stock_obj, creado = Stock.objects.get_or_create(
+            producto=self.producto,
+            almacen=self.almacen,
+            unidadMedida=self.unidadMedida
+        )
+
         if self.tipo == 'entrada':
             stock_obj.cantidad += self.cantidad
         elif self.tipo == 'salida':
             if stock_obj.cantidad < self.cantidad:
                 raise ValueError("No hay suficiente stock para realizar la salida.")
             stock_obj.cantidad -= self.cantidad
+
         stock_obj.save()
+        super().save(*args, **kwargs)
+
 
 
 #---------------CARRITOS        
@@ -201,7 +206,6 @@ class Carrito_Producto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
     cantidad = models.IntegerField()
-    imagen_url = models.ImageField(upload_to='imagenes_productos/',null=True,blank=True)
     class Meta:
         unique_together=[['carrito','producto','unidadMedida']]
 
@@ -213,8 +217,9 @@ class Carrito_Producto(models.Model):
 # aca se guardan todos los datos de una compra, una vez pagado desde el carrito
 class Pedido(models.Model):
     id = models.AutoField(primary_key=True)
+    carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE, null=True)  # por cambiar para que no sea null
     usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    #total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     fecha_pedido = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Pedido #{self.id}"

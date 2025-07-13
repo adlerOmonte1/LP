@@ -80,6 +80,8 @@ class CarritoProductoSerializer(serializers.ModelSerializer):
     producto_imagen = serializers.ImageField(source='producto.imagen_url', read_only=True)
     producto_precio = serializers.ReadOnlyField(source='producto.precio')
     producto_nombre = serializers.ReadOnlyField(source='producto.nombre')
+    unidadMedida_unidad = serializers.ReadOnlyField(source = 'unidadMedida.unidad' )
+    
     class Meta:
         model = Carrito_Producto
         fields = "__all__"
@@ -164,7 +166,10 @@ class UnidadMedidaSerializer(serializers.ModelSerializer):
         model = UnidadMedida
         fields = "__all__"
 class DetallePedidoSerializer(serializers.ModelSerializer):
-    producto = ProductoSerializer()
+    producto_imagen = serializers.ImageField(source='producto.imagen_url', read_only=True)
+    producto_precio = serializers.ReadOnlyField(source='producto.precio')
+    producto_nombre = serializers.ReadOnlyField(source='producto.nombre')
+    unidadMedida_unidad = serializers.ReadOnlyField(source = 'unidadMedida.unidad' )
     class Meta:
         model = DetallePedido
         fields = "__all__"
@@ -176,22 +181,3 @@ class StockSerializer2(serializers.ModelSerializer):
     class Meta:
         model = models.Stock
         fields = "__all__"
-
-""""
-class PersonaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Persona
-        fields= "__all__"
-
-class UnidadMedidaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = UnidadMedida
-        fields= "__all__"
-
-class StockSerializer(serializers.ModelSerializer):
-    producto = ProductoSerializer()
-    almacen = AlmacenSerializer()
-    class Meta:
-        model = models.Stock
-        fields = ['producto','almacen','cantidad']
-"""
