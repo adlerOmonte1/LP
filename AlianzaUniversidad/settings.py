@@ -45,7 +45,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    #'WebUDH.middleware.APIKeyMiddleware'
+    'WebUDH.middleware.APIKeyMiddleware'
 ]
 
 CORS_ALLOWED_ORIGINS = [
@@ -72,7 +72,7 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
-""""
+
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
@@ -80,7 +80,7 @@ REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
     ],
-}"""
+}
 
 
 TEMPLATES = [

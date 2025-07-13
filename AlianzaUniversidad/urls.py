@@ -43,6 +43,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
     path('api/login/', views.LoginView.as_view(), name='login'),  # <-- aquí el login
+    path('api/registro/', views.RegistroView.as_view(), name='registro'),
 
     #path('api/login/', views.ObtenerToken.as_view(),name='token-auth'),
 ] + static(settings.MEDIA_URL,document_root = settings.MEDIA_ROOT)

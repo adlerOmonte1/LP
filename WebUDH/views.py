@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from . import models, serializer
+from . serializer import UsuarioSerializer
 from rest_framework import viewsets, permissions
 from rest_framework.response import Response
 #from rest_framework.authtoken.views import ObtainAuthToken
@@ -23,6 +24,10 @@ from .models import Administrador, Carrito,Pago,Pedido,Kardex,DetallePedido
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = models.Usuario.objects.all()
     serializer_class = serializer.UsuarioSerializer
+    def get_permissions(self):
+        if self.action == 'create':
+            return [permissions.AllowAny()]
+        return [permissions.IsAuthenticated()]
 
 class LoginView(APIView):
     permission_classes = [AllowAny]
@@ -43,6 +48,19 @@ class LoginView(APIView):
                              }) # agregar los datos del usuario para ver el rol
         else:
             return Response({"error": "Credenciales Invalidas"}, status=400)
+        
+# Registro de usuario
+class RegistroView(APIView):
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        serializer = UsuarioSerializer(data=request.data)
+        if serializer.is_valid():
+            user = serializer.save()
+            token, _ = Token.objects.get_or_create(user=user)
+            return Response({"token": token.key}, status=201)
+        return Response(serializer.errors, status=400)
+
 
 '''
 AUTENTICACION OTRO METODO

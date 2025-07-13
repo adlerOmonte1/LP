@@ -5,7 +5,14 @@ class APIKeyMiddleware:
     def __init__(self,get_response):
         self.get_response = get_response
 
+
     def __call__(self,request):
+        #print("Ruta:", request.path)
+        # rutas permitidas sin necesidad de API Key
+        rutas_permitidas = [ '/api/registro/']
+        if request.path in rutas_permitidas:
+            return self.get_response(request)
+        
         api_key = request.headers.get('x-api-key') 
 
         if api_key and api_key == settings.API_KEY:

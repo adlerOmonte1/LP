@@ -14,10 +14,6 @@ class Usuario(AbstractUser):
         ('hincha','Hincha'),
     ]
     #Ya tiene por el Modelo Abstrac User
-    #id=models.AutoField(primary_key=True)
-    #nombreCompleto=models.CharField(max_length=70)
-    #email=models.EmailField()
-    #password=models.CharField(max_length=30)
     telefono=models.CharField(max_length=9,null=True,blank=True)
     dni=models.CharField(max_length=8,null=True,blank=True)
     fechaNac=models.DateField(null=True,blank=True)
