@@ -31,9 +31,10 @@ class TipoAdminSerializer(serializers.ModelSerializer):
         fields = "__all__"
 class AdministradorSerializer(serializers.ModelSerializer):
     nombre_usuario = serializers.CharField(source='id.username', read_only=True)  # 'id' es el campo OneToOne a Usuario
+    tipo_nombre = serializers.CharField(source='tipo_admin.tipo', read_only=True)
     class Meta:
         model = Administrador
-        fields = ['id', 'tipo_admin', 'nombre_usuario']
+        fields = ['id', 'tipo_admin', 'nombre_usuario', 'tipo_nombre']
 class CategoriaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Categoria
