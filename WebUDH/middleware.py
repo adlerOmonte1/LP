@@ -13,6 +13,10 @@ class APIKeyMiddleware:
         if request.path in rutas_permitidas:
             return self.get_response(request)
         
+        # permitir también las rutas que comienzan con /media/ o /static/
+        if request.path.startswith('/media/') or request.path.startswith('/static/'):
+            return self.get_response(request)
+        
         api_key = request.headers.get('x-api-key') 
 
         if api_key and api_key == settings.API_KEY:
