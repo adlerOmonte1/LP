@@ -71,9 +71,11 @@ class CarritoSerializer(serializers.ModelSerializer):
     #producto = ProductoSerializer()
     class Meta:
         model = Carrito
-        fields = ['id', 'usuario', 'fecha_creacion', 'producto', 'total']
+        fields = "__all__"
+        #fields = ['id', 'usuario', 'fecha_creacion', 'producto', 'total']
         def get_total(self, obj):
             return obj.total
+        
 class CarritoProductoSerializer(serializers.ModelSerializer):
     producto_imagen = serializers.ImageField(source='producto.imagen_url', read_only=True)
     producto_precio = serializers.ReadOnlyField(source='producto.precio')
@@ -105,14 +107,7 @@ class NoticiaSerializer(serializers.ModelSerializer):
         model = Noticia
         fields = ['id','titulo','contenido','imagen','fecha_publicacion','administrador','administrador_id']
 
-class ComentarioSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Comentario
-        fields = "__all__"
-class ReseñaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Reseña
-        fields = "__all__"
+
 class JugadorSerializer(serializers.ModelSerializer): 
     tipo_param = serializers.CharField(source='administrador.id', read_only=True)
     class Meta:

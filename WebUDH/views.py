@@ -115,6 +115,11 @@ class CarritoViewSet(viewsets.ModelViewSet):
 class CarritoProductoViewSet(viewsets.ModelViewSet):
     queryset = models.Carrito_Producto.objects.all()
     serializer_class = serializer.CarritoProductoSerializer
+    def get_queryset(self):
+        usuario_id = self.request.query_params.get('usuario')
+        if usuario_id:
+            return models.Carrito_Producto.objects.filter(carrito__usuario__id=usuario_id)
+        return super().get_queryset()
 
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = models.Pedido.objects.all()
@@ -132,13 +137,6 @@ class NoticiaViewSet(viewsets.ModelViewSet):
     queryset = models.Noticia.objects.all()
     serializer_class = serializer.NoticiaSerializer
 
-class ComentarioViewSet(viewsets.ModelViewSet):
-    queryset = models.Comentario.objects.all()
-    serializer_class = serializer.ComentarioSerializer
-
-class ReseñaViewSet(viewsets.ModelViewSet):
-    queryset = models.Reseña.objects.all()
-    serializer_class = serializer.ReseñaSerializer
 
 class JugadorViewSet(viewsets.ModelViewSet):
     queryset = models.Jugador.objects.all()

@@ -28,12 +28,16 @@ class Hincha(models.Model):
     alias = models.CharField(max_length=40) 
     def __str__(self):
         return self.alias
+    
+
 #---------------TIPO DE ADMINISTRADOR    
 class TipoAdministrador(models.Model):
     id=models.AutoField(primary_key=True)
     tipo=models.CharField(max_length=40)
     def __str__(self):
         return self.tipo
+    
+
  #---------------ADMINISTRADOR       
 class Administrador(models.Model):
     id = models.OneToOneField(Usuario, on_delete=models.CASCADE, primary_key=True)
@@ -41,6 +45,8 @@ class Administrador(models.Model):
 
     def __str__(self):
         return f"{self.id.username}: {self.tipo_admin.tipo}"
+    
+
 #---------------CATEGORIAS   
 class Categoria(models.Model):
     id = models.AutoField(primary_key=True)
@@ -49,6 +55,8 @@ class Categoria(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+
 #---------------PROVEEDORES       
 class Proveedor(models.Model):
     id = models.AutoField(primary_key=True)
@@ -63,6 +71,8 @@ class Proveedor(models.Model):
 
     def __str__(self):
         return self.nombreProveedor
+    
+
 #---------------ALMACENES       
 class Almacen(models.Model):
     id = models.AutoField(primary_key=True)
@@ -73,6 +83,8 @@ class Almacen(models.Model):
     estado = models.CharField(max_length=40,choices=Estado,default='Activo')
     def __str__(self):
         return self.nombre
+    
+
 #---------------PROMOCIONES       
 class Promocion(models.Model):
     id = models.AutoField(primary_key=True)
@@ -93,18 +105,17 @@ class Promocion(models.Model):
 
     def __str__(self):
         return self.nombre
+    
+
 #---------------PRODCUTOS        
 class Producto(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
     descripcion = models.TextField()
     precio = models.DecimalField(max_digits=10, decimal_places=2)
-    #talla = models.CharField(max_length=40,null=True)
-    #stock = models.IntegerField()
     imagen_url = models.ImageField(upload_to='imagenes_productos/',null=True,blank=True)
-    usuario = models.ManyToManyField(Usuario, through='Reseña',null=True) # se agrega para tener mas atributos
     categoria = models.ForeignKey(Categoria, on_delete=models.CASCADE) # relacion con categoria 1:M
-    almacen = models.ManyToManyField(Almacen, through='Stock',null=True)  # M:M relacion con almacen
+    almacen = models.ManyToManyField(Almacen, through='Stock')  # M:M relacion con almacen
     proveedor = models.ForeignKey(Proveedor, on_delete=models.CASCADE)  # relacion con proveedor 1:M
     promocion = models.ForeignKey(Promocion, on_delete=models.SET_NULL,null=True,blank=True)  # relacion con promocion 1:M
     # Funcion de descuento
@@ -119,12 +130,16 @@ class Producto(models.Model):
         return self.precio
     def __str__(self):
         return self.nombre
+    
+
 # UNIDAD DE MEDIDA, para definir tallas
 class UnidadMedida(models.Model):
     id = models.AutoField(primary_key=True)
     unidad = models.CharField(max_length=30)
     def __str__(self):
         return self.unidad
+    
+
 #------STOCK de la relacion de M-M ALMACEN-PRODUCTO    
 # control de concurrencia
 class Stock(models.Model):
@@ -135,6 +150,8 @@ class Stock(models.Model):
     fecha = models.DateTimeField(auto_now=True)
     class Meta:
         unique_together=[['almacen','producto','unidadMedida']] # no permite iguales
+
+
 
 #_--------------KARDEX
 class Kardex(models.Model):
@@ -160,11 +177,13 @@ class Kardex(models.Model):
                 raise ValueError("No hay suficiente stock para realizar la salida.")
             stock_obj.cantidad -= self.cantidad
         stock_obj.save()
+
+
 #---------------CARRITOS        
 class Carrito(models.Model):
     id = models.AutoField(primary_key=True)
     usuario = models.OneToOneField(Usuario, on_delete=models.CASCADE)
-    producto = models.ManyToManyField(Producto, through='Carrito_Producto')
+    #producto = models.ManyToManyField(Producto, through='Carrito_Producto')
     fecha_creacion = models.DateField(auto_now=True)
     #monto_total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     #estado = models.CharField(choices=Estado, default='Activo')
@@ -173,6 +192,8 @@ class Carrito(models.Model):
         return sum(cp.producto.precio_final * cp.cantidad for cp in self.carrito_producto_set.all())
     def __str__(self):
         return f"Carrito #{self.id} de {self.usuario.username}"
+    
+
 #---------------CARRITO-PRODUCTO        
 # relacion de muchos a muchos pero contiene datos adicionales, se usa through
 class Carrito_Producto(models.Model):
@@ -180,20 +201,26 @@ class Carrito_Producto(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     unidadMedida = models.ForeignKey(UnidadMedida,on_delete=models.CASCADE)
     cantidad = models.IntegerField()
+    imagen_url = models.ImageField(upload_to='imagenes_productos/',null=True,blank=True)
     class Meta:
         unique_together=[['carrito','producto','unidadMedida']]
 
     def __str__(self):
         return f"Carrito ID: {self.carrito}"
+    
+
 #---------------PEDIDOS   
 # aca se guardan todos los datos de una compra, una vez pagado desde el carrito
 class Pedido(models.Model):
     id = models.AutoField(primary_key=True)
-    carrito = models.ForeignKey(Carrito,on_delete=models.CASCADE) # modificar en caso el pedido se cumple y luego se borre contenido de pedido
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    total = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     fecha_pedido = models.DateTimeField(auto_now=True)
     def __str__(self):
         return f"Pedido #{self.id}"
     
+
+
 class DetallePedido(models.Model):
     pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)
     carrito = models.ForeignKey(Carrito, on_delete=models.CASCADE)
@@ -202,6 +229,8 @@ class DetallePedido(models.Model):
     cantidad = models.IntegerField()
     class Meta:
         unique_together=[['carrito','producto','unidadMedida']]
+
+
 class Pasarela(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=100)
@@ -211,7 +240,7 @@ class Pasarela(models.Model):
     
     def __str__(self):
         return self.nombre
-
+    
 class Pago(models.Model):
     id = models.AutoField(primary_key=True)
     fecha_pago = models.DateTimeField(auto_now=True)
@@ -219,7 +248,9 @@ class Pago(models.Model):
     #pasarela = models.ForeignKey(Pasarela, on_delete=models.CASCADE)
     def __str__(self):
         return f"Pago ID#{self.id}"
-    
+
+
+
 class Noticia(models.Model):
     id = models.AutoField(primary_key=True)
     nombreHistoria = models.CharField(max_length=100)  
@@ -231,27 +262,7 @@ class Noticia(models.Model):
     def __str__(self):
         return self.nombreHistoria
     
-class Comentario(models.Model):
-    id = models.AutoField(primary_key=True)
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    noticia = models.ForeignKey(Noticia, on_delete=models.CASCADE)
-    descripcion = models.TextField()
-    fechaComentario = models.DateField(auto_now=True)
 
-    def __str__(self):
-        return f"Comentario ID#{self.id} de {self.usuario.username}"
-
-class Reseña(models.Model):
-    producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
-    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
-    contenido = models.TextField()
-    fecha_publicacion = models.DateField(auto_now=True)
-    valoracion = models.CharField(max_length=10)
-    class Meta:
-        unique_together=[['usuario','producto']]
-
-    def __str__(self):
-        return f"Reseña #{self.producto.id} de {self.usuario.username}"
     
 class Jugador(models.Model):
     nombre = models.CharField(max_length=100)
@@ -265,6 +276,8 @@ class Jugador(models.Model):
     imagen = models.ImageField(upload_to='jugadores/', blank=True, null=True)
     administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE)
  
+
+
 class Partido(models.Model):
     id = models.AutoField(primary_key=True)
     administrador = models.ForeignKey(Administrador, on_delete=models.CASCADE,blank=True, null=True)  
@@ -276,6 +289,9 @@ class Partido(models.Model):
 
     def __str__(self):
         return self.nombre_partido
+    
+
+
 
 class Historia(models.Model):
     id = models.AutoField(primary_key=True)
@@ -286,6 +302,8 @@ class Historia(models.Model):
 
     def __str__(self):
         return self.nombreHistoria
+    
+
     
 class Post_Historia(models.Model):
     id = models.AutoField(primary_key=True)
@@ -298,51 +316,3 @@ class Post_Historia(models.Model):
     def __str__(self):
         return self.titulo
 
-    
-    """""
-# Integracion de clase imagen
-
-class Stock (models.Model):
-    persona = models.ForeignKey(Persona,on_delete=models.CASCADE,null=True,blank=True)
-    almacen= models.ForeignKey(Persona,on_delete=models.CASCADE,null=True,blank=True)
-    cantidad = models.PositiveBigIntegerField(default=0)
-    class Meta:
-        unique_together = ('persona','almacen')
-
-# STOCK 
-"""
-"""""
-CODIGO POR CONFIRMAR DE PARTE LA AUTENTICACION
-    #Prueba Unitaria de Seguridad
-class UsuarioManager(BaseUserManager):
-    def create_user(self,username,email,password=None,**extra_fields):
-        #Creamos un usario en base a nombre de usuario, contraseña y correo
-        if not email: #verifica que se proporcione correo
-            raise ValueError('Correo es obligatorio')
-        email = self.normalize_email(email) #convierte en minusculas 
-        user = self.model(username=username,email=email,**extra_fields)
-        user.set_password(password) #encripta la contraseña
-        user.save(using=self._db)
-        return user
-    
-    def create_superuser(self,username,email,password=None,**extra_fields):
-        #Creamos un superusario en base a nombre de usuario, contraseña y correo
-        extra_fields.setdefault('is_staff', True)
-        extra_fields.setdefault('is_superuser', True)
-
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError('El campo staff debe ser True')
-        
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError('El campo superusuario debe ser True')
-        
-        return self.create_user(username,email,password,**extra_fields)
-    
-
-
-     #distinguir con mi otra tabla usuario
-    #objects = UsuarioManager()
-
-    #def __str__(self):
-    #    return self.username
-"""
