@@ -124,7 +124,11 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = models.Pedido.objects.all()
     serializer_class = serializer.PedidoSerializer
-
+    def get_queryset(self):
+        usuario_id = self.request.query_params.get('usuario')
+        if usuario_id:
+            return models.Pedido.objects.filter(carrito__usuario__id=usuario_id)
+        return super().get_queryset()
 class PasarelaViewSet(viewsets.ModelViewSet):
     queryset = models.Pasarela.objects.all()
     serializer_class = serializer.PasarelaSerializer
@@ -167,6 +171,12 @@ class UnidadMedidaViewSet(viewsets.ModelViewSet):
 class DetallePedidoViewSet(viewsets.ModelViewSet):
     queryset = models.DetallePedido.objects.all()
     serializer_class = serializer.DetallePedidoSerializer
+    #para el filtro por cada usuario
+    def get_queryset(self):
+        usuario_id = self.request.query_params.get('usuario')
+        if usuario_id:
+            return models.DetallePedido.objects.filter(carrito__usuario__id=usuario_id)
+        return super().get_queryset()
 
 """""
 class PersonaViewSet(viewsets.ModelViewSet):
@@ -188,55 +198,61 @@ class StockViewSetv2(viewsets.ModelViewSet):
         stock_serializer=serializer.StockSerializer2(stock)
         return Response(stock_serializer.data, status=status.HTTP_200_OK)
 
-class ProcesarPago(viewsets.ViewSet):
+class ProcesarCompraViewSet(viewsets.ViewSet):
+    
     @action(detail=False, methods=['post'], url_path='procesar')
     @transaction.atomic
-    def procesar_pago(self, request):
+    def procesar_compra(self, request):
         carrito_id = request.data.get('carrito_id')
-        carrito = Carrito.objects.get(id=carrito_id)
 
-            # Validar stock antes de procesar
+        try:
+            carrito = Carrito.objects.get(id=carrito_id)
+        except Carrito.DoesNotExist:
+            return Response({'error': 'Carrito no encontrado'}, status=404)
+
+        # Validar stock
         for item in carrito.carrito_producto_set.all():
-                total_stock = 0
-                for stock in item.producto.stock_set.filter(unidadMedida=item.unidadMedida):
-                    total_stock += stock.cantidad
-                if item.cantidad > total_stock:
-                    return Response({
-                        'error': f"No hay suficiente stock para el producto {item.producto.nombre}."
-                    }, status=status.HTTP_400_BAD_REQUEST)
+            total_stock = sum(
+                stock.cantidad for stock in item.producto.stock_set.filter(unidadMedida=item.unidadMedida)
+            )
+            if item.cantidad > total_stock:
+                return Response({
+                    'error': f"No hay suficiente stock para el producto {item.producto.nombre}."
+                }, status=status.HTTP_400_BAD_REQUEST)
 
-            # Crear el pago con el carrito
-        Pago.objects.create(carrito=carrito)
+        # Crear el pedido
+        pedido = Pedido.objects.create(
+            usuario=carrito.usuario,
+            carrito=carrito
+        )
 
-            # Crear el pedido despues del pago
-        pedido = Pedido.objects.create(carrito=carrito)
-
-            # Generar detalle del pedido y actualizar kardex
+        # Crear detalle de pedido y actualizar el stock a través de kardex
         for item in carrito.carrito_producto_set.all():
-                DetallePedido.objects.create(
-                    pedido=pedido,
-                    carrito=carrito,
+            DetallePedido.objects.create(
+                pedido=pedido,
+                carrito=carrito,
+                producto=item.producto,
+                unidadMedida=item.unidadMedida,
+                cantidad=item.cantidad
+            )
+
+            cantidad_restante = item.cantidad
+            stocks = item.producto.stock_set.filter(unidadMedida=item.unidadMedida).order_by('fecha')
+
+            for stock in stocks:
+                if cantidad_restante <= 0:
+                    break
+                salida = min(cantidad_restante, stock.cantidad)
+                Kardex.objects.create(
                     producto=item.producto,
+                    almacen=stock.almacen,
                     unidadMedida=item.unidadMedida,
-                    cantidad=item.cantidad
+                    tipo='salida',
+                    cantidad=salida
                 )
-                cantidad_restante = item.cantidad
+                cantidad_restante -= salida
 
-                # Distribuir la salida del stock por orden de fecha
-                stocks = item.producto.stock_set.filter(unidadMedida=item.unidadMedida).order_by('fecha')
-                for stock in stocks:
-                    if cantidad_restante <= 0:
-                        break
-                    salida = min(cantidad_restante, stock.cantidad)
-                    Kardex.objects.create(
-                        producto=item.producto,
-                        almacen=stock.almacen,
-                        unidadMedida=item.unidadMedida,
-                        tipo='salida',
-                        cantidad=salida
-                    )
-                    cantidad_restante -= salida
-
-            # Vaciar el carrito
+        # Limpiar el carrito del usuario
         carrito.carrito_producto_set.all().delete()
-        return Response({'mensaje': 'Pago procesado correctamente'}, status=status.HTTP_200_OK)
+
+        return Response({'mensaje': 'Compra realizada con éxito'}, status=status.HTTP_200_OK)

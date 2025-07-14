@@ -31,7 +31,7 @@ router.register('stock',views.StockViewSet)
 router.register('tallas',views.UnidadMedidaViewSet)
 router.register('detallepedido',views.DetallePedidoViewSet)
 router.register('stocks',views.StockViewSetv2, basename='consulta')
-router.register('procesar',views.ProcesarPago, basename='procesar-pago')
+router.register('procesar-compra',views.ProcesarCompraViewSet, basename='procesar-pago')
 
 # migrar se debe de poner el stock y consultar 
 
