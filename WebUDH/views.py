@@ -127,7 +127,7 @@ class PedidoViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         usuario_id = self.request.query_params.get('usuario')
         if usuario_id:
-            return models.Pedido.objects.filter(carrito__usuario__id=usuario_id)
+            return models.Pedido.objects.filter(usuario_id=usuario_id).order_by('-fecha_pedido')
         return super().get_queryset()
 class PasarelaViewSet(viewsets.ModelViewSet):
     queryset = models.Pasarela.objects.all()

@@ -86,10 +86,9 @@ class CarritoProductoSerializer(serializers.ModelSerializer):
     class Meta:
         model = Carrito_Producto
         fields = "__all__"
-class PedidoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Pedido
-        fields = "__all__"
+
+
+
 class PasarelaSerializer(serializers.ModelSerializer):
     class Meta:
         model = Pasarela
@@ -175,7 +174,13 @@ class DetallePedidoSerializer(serializers.ModelSerializer):
         model = DetallePedido
         fields = "__all__"
 
-class StockSerializer2(serializers.ModelSerializer):
+class PedidoSerializer(serializers.ModelSerializer):
+    detalles = DetallePedidoSerializer(source='detallepedido_set',many = True,read_only = True)
+    class Meta:
+        model = Pedido
+        fields = ['id','fecha_pedido','usuario','carrito','detalles']
+
+class StockSerializer2(serializers.ModelSerializer): 
     producto = ProductoSerializer()
     almacen = AlmacenSerializer()
     unidadMedida = UnidadMedidaSerializer
