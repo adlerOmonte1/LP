@@ -232,8 +232,7 @@ class DetallePedido(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.CASCADE)
     unidadMedida = models.ForeignKey(UnidadMedida, on_delete=models.CASCADE)
     cantidad = models.IntegerField()
-    class Meta:
-        unique_together=[['carrito','producto','unidadMedida']]
+  
 
 
 class Pasarela(models.Model):

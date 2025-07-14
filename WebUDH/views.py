@@ -124,7 +124,11 @@ class CarritoProductoViewSet(viewsets.ModelViewSet):
 class PedidoViewSet(viewsets.ModelViewSet):
     queryset = models.Pedido.objects.all()
     serializer_class = serializer.PedidoSerializer
-
+    def get_queryset(self):
+        usuario_id = self.request.query_params.get('usuario')
+        if usuario_id:
+            return models.Pedido.objects.filter(carrito__usuario__id=usuario_id)
+        return super().get_queryset()
 class PasarelaViewSet(viewsets.ModelViewSet):
     queryset = models.Pasarela.objects.all()
     serializer_class = serializer.PasarelaSerializer
@@ -167,6 +171,12 @@ class UnidadMedidaViewSet(viewsets.ModelViewSet):
 class DetallePedidoViewSet(viewsets.ModelViewSet):
     queryset = models.DetallePedido.objects.all()
     serializer_class = serializer.DetallePedidoSerializer
+    #para el filtro por cada usuario
+    def get_queryset(self):
+        usuario_id = self.request.query_params.get('usuario')
+        if usuario_id:
+            return models.DetallePedido.objects.filter(carrito__usuario__id=usuario_id)
+        return super().get_queryset()
 
 """""
 class PersonaViewSet(viewsets.ModelViewSet):
